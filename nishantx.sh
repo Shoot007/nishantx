@@ -12,7 +12,7 @@
 #  Purpose: Authorized penetration testing & security assessments only
 #=============================================================
 
-set -e
+# set -e removed: individual modules handle errors gracefully
 
 # --- Script directory ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -71,6 +71,8 @@ NOTIFY=false
 RESUME=false
 RESUME_FILE=""
 CONFIG_FILE="${SCRIPT_DIR}/config/config.conf"
+OUTPUT_BASE="results"
+LOG_LEVEL="INFO"
 SCAN_START_TIME=0
 
 # --- Help ---

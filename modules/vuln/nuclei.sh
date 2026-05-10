@@ -32,7 +32,7 @@ run_nuclei_scan() {
     # --- Full vulnerability scan ---
     show_progress $((++current)) $total_tools "Nuclei Scan"
     log_info "Running nuclei vulnerability scan..."
-    local nuclei_opts="-l $subs_file -t ${NUCLEI_TEMPLATES_DIR} -silent -t $THREADS -severity $NUCLEI_SEVERITY"
+    local nuclei_opts="-l $subs_file -t ${NUCLEI_TEMPLATES_DIR} -silent -c $THREADS -severity $NUCLEI_SEVERITY"
     if [[ -n "$NUCLEI_TAGS" ]]; then
         nuclei_opts+=" -tags $NUCLEI_TAGS"
     fi
@@ -40,8 +40,10 @@ run_nuclei_scan() {
         nuclei_opts+=" -rate-limit 50"
     fi
     eval nuclei $nuclei_opts \
-        -o "${nuclei_dir}/nuclei_vulns.txt" \
-        -jsonl "${nuclei_dir}/nuclei_vulns.jsonl" 2>/dev/null
+        -o "${nuclei_dir}/nuclei_vulns.txt" 2>/dev/null
+    # Also save JSONL output
+    eval nuclei $nuclei_opts \
+        -jsonl -o "${nuclei_dir}/nuclei_vulns.jsonl" 2>/dev/null
     log_success "nuclei vulns: $(count_lines "${nuclei_dir}/nuclei_vulns.txt") findings"
 
     # --- Exposed panels/templates ---

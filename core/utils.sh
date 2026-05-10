@@ -103,9 +103,11 @@ random_ua() {
 
 # Check internet connectivity
 check_connectivity() {
-    if ! ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1; then
-        log_error "No internet connectivity detected"
-        return 1
+    if ! curl -s -o /dev/null -w "%{http_code}" https://1.1.1.1 --max-time 5 2>/dev/null | grep -qE "^[0-9]"; then
+        if ! ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1; then
+            log_error "No internet connectivity detected"
+            return 1
+        fi
     fi
     log_debug "Internet connectivity OK"
     return 0
