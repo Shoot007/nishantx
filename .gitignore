@@ -1,0 +1,21 @@
+# Results and output
+results/
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Config with API keys (optional - uncomment if you don't want to expose keys)
+# config/config.conf
+
+# Temp directories
+temp/
