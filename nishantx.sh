@@ -21,6 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/core/logging.sh"
 source "${SCRIPT_DIR}/core/utils.sh"
 source "${SCRIPT_DIR}/core/notifications.sh"
+source "${SCRIPT_DIR}/utils/deps.sh"
 
 # --- Source recon modules ---
 source "${SCRIPT_DIR}/modules/recon/subdomains.sh"
@@ -98,6 +99,8 @@ ${BOLD}OPTIONS${RESET}
     ${CYAN}--config${RESET} <file> Custom config file
     ${CYAN}--update${RESET}        Update NishantX and tools
     ${CYAN}--api-config${RESET}    Configure API keys interactively
+    ${CYAN}--install-deps${RESET}  Install all missing dependencies (auto)
+    ${CYAN}--check-deps${RESET}   Check dependencies without installing
 
 ${BOLD}EXAMPLES${RESET}
     ./nishantx.sh -d example.com
@@ -191,6 +194,14 @@ parse_args() {
             --api-config)
                 configure_apis
                 exit 0
+                ;;
+            --install-deps)
+                check_and_install_deps
+                exit $?
+                ;;
+            --check-deps)
+                quick_deps_check
+                exit $?
                 ;;
             *)
                 log_error "Unknown option: $1"
@@ -297,7 +308,8 @@ preflight_checks() {
 
     if [[ ${#missing[@]} -gt 0 ]]; then
         log_warn "Missing essential tools: ${missing[*]}"
-        log_info "Run installer.sh to install dependencies"
+        log_info "Run: ./nishantx.sh --install-deps   (auto-install all dependencies)"
+        log_info "  Or: sudo ./installer.sh            (system-wide install)"
     fi
 }
 
