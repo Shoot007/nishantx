@@ -38,7 +38,6 @@ run_sqlmap_scan() {
         --threads "$THREADS" \
         --random-agent \
         --output-dir="${sqlmap_dir}/output" \
-        --reports-dir="${sqlmap_dir}/reports" \
         --timeout=30 --retries="$RETRY_COUNT" \
         -o 2>/dev/null
 

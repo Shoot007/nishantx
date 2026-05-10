@@ -50,7 +50,7 @@ run_dns_enum() {
     show_progress $((++current)) $total_tools "DNS Enum"
     if require_tool dnsenum; then
         log_info "Running dnsenum..."
-        dnsenum "$domain" --threads "$THREADS" 2>/dev/null > "${dns_dir}/dnsenum.txt"
+        dnsenum "$domain" 2>/dev/null > "${dns_dir}/dnsenum.txt"
         log_success "dnsenum: completed"
     fi
 

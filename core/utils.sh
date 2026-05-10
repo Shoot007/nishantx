@@ -8,11 +8,71 @@ check_tool() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Require a tool or exit with warning
+# Map of Go tools to their install URLs
+declare -A GO_TOOLS_MAP=(
+    ["subfinder"]="github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
+    ["assetfinder"]="github.com/tomnomnom/assetfinder@latest"
+    ["httpx"]="github.com/projectdiscovery/httpx/cmd/httpx@latest"
+    ["naabu"]="github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"
+    ["nuclei"]="github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest"
+    ["dnsx"]="github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
+    ["shuffledns"]="github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest"
+    ["katana"]="github.com/projectdiscovery/katana/cmd/katana@latest"
+    ["gau"]="github.com/lc/gau/v2/cmd/gau@latest"
+    ["ffuf"]="github.com/ffuf/ffuf/v2@latest"
+    ["dalfox"]="github.com/hahwul/dalfox/v2@latest"
+    ["httprobe"]="github.com/tomnomnom/httprobe@latest"
+    ["chaos"]="github.com/projectdiscovery/chaos-client/cmd/chaos@latest"
+    ["gobuster"]="github.com/OJ/gobuster/v3@latest"
+    ["subzy"]="github.com/michenil/subzy@latest"
+    ["puredns"]="github.com/d3mondev/puredns/v2/cmd/puredns@latest"
+)
+
+# Auto-install Go tool
+install_go_tool() {
+    local tool="$1"
+    local install_url="${GO_TOOLS_MAP[$tool]}"
+
+    if [[ -z "$install_url" ]]; then
+        return 1  # Not a known Go tool
+    fi
+
+    if ! check_tool go; then
+        log_error "Go not installed - cannot auto-install $tool"
+        log_info "Install Go: https://golang.org/doc/install"
+        return 1
+    fi
+
+    log_info "Attempting to install $tool via go install..."
+
+    export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
+
+    if go install -v "$install_url" 2>/dev/null; then
+        if check_tool "$tool"; then
+            log_success "$tool installed successfully"
+            return 0
+        fi
+    fi
+
+    log_error "Failed to install $tool"
+    log_info "Try manual install: go install -v $install_url"
+    return 1
+}
+
+# Require a tool or exit with warning (with auto-install)
 require_tool() {
     local tool="$1"
     if ! check_tool "$tool"; then
-        log_warn "Tool not found: $tool - skipping related scans"
+        log_warn "Tool not found: $tool"
+
+        # Try auto-install for Go tools
+        if [[ -n "${GO_TOOLS_MAP[$tool]}" ]]; then
+            if install_go_tool "$tool"; then
+                return 0
+            fi
+        fi
+
+        log_info "Skipping $tool related scans (install manually or via installer.sh)"
         return 1
     fi
     return 0

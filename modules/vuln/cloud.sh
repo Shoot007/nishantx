@@ -17,15 +17,15 @@ run_cloud_enum() {
     show_progress $((++current)) $total_tools "Cloud Enum"
     if require_tool s3scanner; then
         log_info "Running s3scanner..."
-        echo "$domain" | s3scanner -bucket -enumerate 2>/dev/null > "${cloud_dir}/s3_buckets.txt"
+        echo "$domain" | s3scanner scan 2>/dev/null > "${cloud_dir}/s3_buckets.txt"
         log_success "s3scanner: $(count_lines "${cloud_dir}/s3_buckets.txt") buckets found"
     fi
 
     # --- cloud_enum ---
     show_progress $((++current)) $total_tools "Cloud Enum"
-    if require_tool cloud_enum; then
+    if [[ -f "/opt/cloud_enum/cloud_enum.py" ]]; then
         log_info "Running cloud_enum..."
-        cloud_enum -k "$domain" -t "$THREADS" 2>/dev/null > "${cloud_dir}/cloud_enum.txt"
+        python3 /opt/cloud_enum/cloud_enum.py -k "$domain" -t "$THREADS" 2>/dev/null > "${cloud_dir}/cloud_enum.txt"
         log_success "cloud_enum: $(count_lines "${cloud_dir}/cloud_enum.txt") findings"
     fi
 

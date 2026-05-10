@@ -37,7 +37,7 @@ run_subdomain_enum() {
         if [[ "$DEEP_SCAN" == "true" ]]; then
             amass enum -d "$domain" -passive -o "${temp_dir}/amass.txt" 2>/dev/null
         else
-            amass enum -d "$domain" -passive -timeout 5 -o "${temp_dir}/amass.txt" 2>/dev/null
+            amass enum -d "$domain" -passive -o "${temp_dir}/amass.txt" 2>/dev/null
         fi
         log_success "amass: $(count_lines "${temp_dir}/amass.txt") subdomains"
     fi
@@ -95,7 +95,7 @@ run_subdomain_enum() {
     show_progress $((++current)) $total_tools "Subdomain Enum"
     if require_tool gau; then
         log_info "Extracting subdomains from gau..."
-        gau --subs "$domain" 2>/dev/null | sed 's|https\?://||' | sed 's/\/.*//' | sort -u >> "${temp_dir}/gau_subs.txt"
+        gau --subs "$domain" 2>/dev/null | sed 's|https\?://||' | sed 's|/.*||' | sort -u >> "${temp_dir}/gau_subs.txt"
         log_success "gau subdomains: $(count_lines "${temp_dir}/gau_subs.txt")"
     fi
 
@@ -124,7 +124,7 @@ run_subdomain_enum() {
         # Use puredns if available for brute forcing
         if require_tool puredns && [[ "$DEEP_SCAN" == "true" ]]; then
             log_info "Brute-forcing subdomains with puredns..."
-            puredns bruteforce "$DNS_WORDLIST" "$domain" --resolvers "/usr/share/resolvers.txt" -t "$THREADS" 2>/dev/null >> "${subs_dir}/resolved.txt"
+            puredns bruteforce "$DNS_WORDLIST" "$domain" --resolvers "/usr/share/resolvers.txt" 2>/dev/null >> "${subs_dir}/resolved.txt"
             dedup_file "${subs_dir}/resolved.txt"
             log_success "After puredns: $(count_lines "${subs_dir}/resolved.txt") resolved subdomains"
         fi

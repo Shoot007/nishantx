@@ -37,10 +37,12 @@ run_js_analysis() {
 
     # --- secretfinder ---
     show_progress $((++current)) $total_tools "JS Analysis"
-    if require_tool SecretFinder; then
+    if [[ -f "/opt/SecretFinder/SecretFinder.py" ]]; then
         log_info "Running SecretFinder for secrets in JS..."
         while IFS= read -r js_url; do
-            SecretFinder -i "$js_url" -o "${js_dir}/secrets_${RANDOM}.txt" 2>/dev/null &
+            python3 /opt/SecretFinder/SecretFinder.py -i "$js_url" -o "${js_dir}/secrets_${RANDOM}.txt" 2>/dev/null &
+            # Limit concurrent processes
+            if [[ $(jobs -r | wc -l) -ge $THREADS ]]; then wait -n; fi
         done < "${js_dir}/js_urls.txt"
         wait
         cat "${js_dir}"/secrets_*.txt 2>/dev/null | sort -u > "${js_dir}/all_secrets.txt"
@@ -54,7 +56,7 @@ run_js_analysis() {
 
     # --- linkfinder ---
     show_progress $((++current)) $total_tools "JS Analysis"
-    if require_tool linkfinder; then
+    if [[ -f "/opt/LinkFinder/linkfinder.py" ]]; then
         log_info "Running LinkFinder for endpoints in JS..."
         while IFS= read -r js_url; do
             python3 /opt/LinkFinder/linkfinder.py -i "$js_url" -o cli 2>/dev/null >> "${js_dir}/linkfinder_endpoints.txt"

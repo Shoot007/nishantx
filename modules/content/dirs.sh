@@ -69,7 +69,7 @@ run_dir_fuzzing() {
     show_progress $((++current)) $total_tools "Dir Fuzzing"
     if require_tool dirsearch; then
         log_info "Running dirsearch..."
-        dirsearch -L "$targets_file" -w "$wordlist" -t "$THREADS" \
+        dirsearch -l "$targets_file" -w "$wordlist" -t "$THREADS" \
             --quiet --format=simple -o "${dirs_dir}/dirsearch.txt" 2>/dev/null
         log_success "dirsearch: completed"
     fi

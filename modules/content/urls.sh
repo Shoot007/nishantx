@@ -18,7 +18,7 @@ run_url_collection() {
     show_progress $((++current)) $total_tools "URL Collection"
     if require_tool gau; then
         log_info "Running gau..."
-        gau --subs "$domain" --threads "$THREADS" --blacklist png,jpg,gif,svg,css,woff,woff2,ttf,eot,ico,mp4,mp3,avi,flv 2>/dev/null > "${urls_dir}/gau_urls.txt"
+        gau --subs "$domain" --blacklist png,jpg,gif,svg,css,woff,woff2,ttf,eot,ico,mp4,mp3,avi,flv 2>/dev/null > "${urls_dir}/gau_urls.txt"
         log_success "gau: $(count_lines "${urls_dir}/gau_urls.txt") URLs"
     fi
 
@@ -26,9 +26,9 @@ run_url_collection() {
     show_progress $((++current)) $total_tools "URL Collection"
     if require_tool katana; then
         log_info "Running katana..."
-        local katana_opts="-d $domain -silent -t $THREADS -jc -aff -d 3"
+        local katana_opts="-u https://$domain -silent -t $THREADS -jc -aff -d 3"
         if [[ "$DEEP_SCAN" == "true" ]]; then
-            katana_opts+=" -depth 5"
+            katana_opts+=" -d 5"
         fi
         eval katana $katana_opts -o "${urls_dir}/katana_urls.txt" 2>/dev/null
         log_success "katana: $(count_lines "${urls_dir}/katana_urls.txt") URLs"

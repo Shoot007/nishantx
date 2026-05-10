@@ -39,31 +39,32 @@ run_takeover_check() {
 
     # --- Built-in fingerprint check for common takeover services ---
     log_info "Running built-in takeover fingerprint check..."
+    # Format: "cname_match_pattern|service_name|expected_status|body_fingerprint"
     local takeover_signatures=(
-        "CNAME.*github.io:404:There isn't a GitHub Pages site here"
-        "CNAME.*herokuapp.com:404:No such app"
-        "CNAME.*aws.*s3:NoSuchBucket"
-        "CNAME.*cloudfront.net:403:Bad Request"
-        "CNAME.*azure.*:404:404 Web Site not found"
-        "CNAME.*shopify.com:404:Sorry, this shop is currently unavailable"
-        "CNAME.*tumblr.com:404:Whatever you were looking for doesn't currently exist"
-        "CNAME.*wordpress.com:404:Do you want to register"
-        "CNAME.*teamwork.com:404:Oops - We didn't find your site"
-        "CNAME.*helpjuice.com:404:We could not find what you're looking for"
-        "CNAME.*helpscout.net:404:No settings were found for this company"
-        "CNAME.*cargo.site:404:If you're moving your domain away from Cargo"
-        "CNAME.*statuspage.io:404:You are being redirected"
-        "CNAME.*uservoice.com:404:This UserVoice subdomain is currently available"
-        "CNAME.*surge.sh:404:project not found"
-        "CNAME.*bitbucket.io:404:Repository not found"
-        "CNAME.*intercom.help:404:This page is reserved for artistic dogs"
-        "CNAME.*webflow.io:404:The page you are looking for doesn't exist or has been moved"
-        "CNAME.*readme.io:404:Project doesnt exist"
-        "CNAME.*pantheon.io:404:404 error unknown site"
-        "CNAME.*smartling.com:404:Domain is not configured"
-        "CNAME.*acquia.com:404:The site you are looking for could not be found"
-        "CNAME.*fastly.com:403:Fastly error: unknown domain"
-        "CNAME.*ngrok.io:404:Tunnel .*.ngrok.io not found"
+        "github\.io|GitHub Pages|404|There isn't a GitHub Pages site here"
+        "herokuapp\.com|Heroku|404|No such app"
+        "s3\.amazonaws\.com|AWS S3|404|NoSuchBucket"
+        "cloudfront\.net|CloudFront|403|Bad Request"
+        "azure\.websites\.net|Azure|404|404 Web Site not found"
+        "shopify\.com|Shopify|404|Sorry, this shop is currently unavailable"
+        "tumblr\.com|Tumblr|404|Whatever you were looking for doesn't currently exist"
+        "wordpress\.com|WordPress|404|Do you want to register"
+        "teamwork\.com|Teamwork|404|Oops - We didn't find your site"
+        "helpjuice\.com|HelpJuice|404|We could not find what you're looking for"
+        "helpscout\.net|HelpScout|404|No settings were found for this company"
+        "cargo\.site|Cargo|404|If you're moving your domain away from Cargo"
+        "statuspage\.io|StatusPage|404|You are being redirected"
+        "uservoice\.com|UserVoice|404|This UserVoice subdomain is currently available"
+        "surge\.sh|Surge|404|project not found"
+        "bitbucket\.io|BitBucket|404|Repository not found"
+        "intercom\.help|Intercom|404|This page is reserved for artistic dogs"
+        "webflow\.io|Webflow|404|The page you are looking for doesn't exist or has been moved"
+        "readme\.io|ReadMe|404|Project doesnt exist"
+        "pantheon\.io|Pantheon|404|404 error unknown site"
+        "smartling\.com|Smartling|404|Domain is not configured"
+        "acquia\.com|Acquia|404|The site you are looking for could not be found"
+        "fastly\.net|Fastly|403|Fastly error: unknown domain"
+        "ngrok\.io|Ngrok|404|Tunnel .* not found"
     )
 
     # Check CNAMEs for each subdomain
@@ -73,18 +74,20 @@ run_takeover_check() {
         [[ -z "$cname" ]] && continue
 
         for sig in "${takeover_signatures[@]}"; do
+            local cname_pattern
+            cname_pattern=$(echo "$sig" | cut -d'|' -f1)
             local service
-            service=$(echo "$sig" | cut -d: -f1)
-            local pattern
-            pattern=$(echo "$sig" | cut -d: -f3-)
+            service=$(echo "$sig" | cut -d'|' -f2)
+            local expected_status
+            expected_status=$(echo "$sig" | cut -d'|' -f3)
+            local fingerprint
+            fingerprint=$(echo "$sig" | cut -d'|' -f4-)
 
-            if echo "$cname" | grep -qi "$service"; then
-                local response
-                response=$(curl -s -o /dev/null -w "%{http_code}" "https://${sub}" --max-time 5 2>/dev/null)
+            if echo "$cname" | grep -qE "$cname_pattern"; then
                 local body
                 body=$(curl -s "https://${sub}" --max-time 5 2>/dev/null)
-                if echo "$body" | grep -qi "$pattern"; then
-                    log_critical "Potential takeover: $sub -> $cname (fingerprint: $service)"
+                if echo "$body" | grep -qi "$fingerprint"; then
+                    log_critical "Potential takeover: $sub -> $cname (service: $service)"
                     echo "$sub|$cname|$service" >> "${takeover_dir}/builtin_takeover.txt"
                     notify_critical "$domain" "Potential subdomain takeover: $sub ($service)"
                 fi
